@@ -1,5 +1,11 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+var pets = require('../data/data.js');
+
+const getPetForPetId = function (petId) {
+  const pet = pets.find(pet => pet.id == petId);
+  return pet;
+}
 
 /**
 * Add a new pet to the store
@@ -10,10 +16,14 @@ const Service = require('./Service');
 const add_pet = ({ body }) => new Promise(
   async (resolve, reject) => {
     try {
+      const pet = body;
+      pet.id = pets.length + 1;
+      pets.push(pet);
       resolve(Service.successResponse({
         body,
       }));
     } catch (e) {
+      console.log('catch addPet ', e);
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
@@ -31,11 +41,15 @@ const add_pet = ({ body }) => new Promise(
 const delete_pet = ({ petId, apiUnderscorekey }) => new Promise(
   async (resolve, reject) => {
     try {
+      pets = pets.filter(function (value, index, arr) {
+        return value.id != petId;
+      });
       resolve(Service.successResponse({
         petId,
         apiUnderscorekey,
       }));
     } catch (e) {
+      console.log('catch deletePet', e);
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
@@ -53,10 +67,9 @@ const delete_pet = ({ petId, apiUnderscorekey }) => new Promise(
 const find_pets_by_status = ({ status }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        status,
-      }));
+      resolve(Service.successResponse(pets));
     } catch (e) {
+      console.log('catch findPetsByStatus', e);
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
@@ -78,6 +91,7 @@ const find_pets_by_tags = ({ tags }) => new Promise(
         tags,
       }));
     } catch (e) {
+      console.log('catch findPetsByTags', e);
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
@@ -94,11 +108,15 @@ const find_pets_by_tags = ({ tags }) => new Promise(
 * */
 const get_pet_by_id = ({ petId }) => new Promise(
   async (resolve, reject) => {
+    let pet = getPetForPetId(petId)
     try {
-      resolve(Service.successResponse({
-        petId,
-      }));
+      if (pet === undefined) {
+        resolve(Service.notFoundResponse({ petId, }));
+      } else {
+        resolve(Service.successResponse(pet));
+      }
     } catch (e) {
+      console.log('catch getPetById', e);
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
